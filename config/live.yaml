@@ -1,0 +1,66 @@
+market: usdm
+symbols: ["ETHUSDT"]
+
+# 周期
+ltf: "15m"
+htf: "4h"
+
+# 策略参数（默认为你当前区间表现最好的基线）
+ema_fast: 20
+ema_slow: 80
+htf_ema: 200
+adx_period: 14
+adx_threshold: 28
+donchian: 90
+atr_period: 14
+atr_stop_mult: 2.5
+atr_trail_mult: 3.2
+allow_short: false                # long_only = true for spot/usdm
+
+# 增强过滤
+breakout_buffer_bps: 5.0         # 突破至少超过 5bp（0.05%）
+min_atr_pct: 0.10                 # ATR/close >= 0.10%（百分比）
+require_adx_rising: true          # 仅在 ADX 上升时允许进场
+
+# 交易成本 & 风险
+fee_bps: 4.5                      # 真实费率（单边 bps）
+slippage_bps: 2.0
+risk_per_trade: 0.1
+max_leverage: 3.0
+max_positions: 2
+
+# 行为参数
+cooldown_bars: 6
+time_stop_bars: 36
+flat_daily: false
+flat_time_utc: "23:55"
+#avoid_hours_utc: [0,1,2,3,4,5,6]
+avoid_hours_utc: [0,1,2,3,4,5,6]
+
+# 实时交易控制
+trade:
+  live_enabled: false             # false: 纸上模拟；true: 实盘
+  use_testnet: false              # 若想先跑testnet，将此项设为true并配置testnet base_url
+  paper_initial_equity: 30
+  quote_ccy: "USDT"               # 账户计价
+  qty_min_notional: 1.0           # 最小名义（简化保护）
+
+# Binance API（请自行替换为你的密钥；不要上传仓库）
+binance:
+  api_key: "PUT_YOUR_API_KEY_HERE"
+  api_secret: "PUT_YOUR_API_SECRET_HERE"
+  spot_base_url: "https://api.binance.com"
+  usdm_base_url: "https://fapi.binance.com"
+  usdm_testnet_base_url: "https://testnet.binancefuture.com"
+
+# Telegram 通知（你提供的配置，若不想启用，把 enabled 设为 false）
+telegram:
+  enabled: true
+  bot_token: "8424014456:AAG0sLNhFen2fQ_BbsaKrgR-P0GKv3yGmbI"
+  chat_id: "2146147989"
+  status_interval_min: 60         # 定时状态上报间隔（分钟）
+
+# 文件路径
+paths:
+  state_file: "state/state.json"
+  log_file: "logs/service.log"
