@@ -56,6 +56,8 @@ def build_features_htf(df_htf: pd.DataFrame, params: StrategyParams) -> pd.DataF
     h = df_htf.copy()
     h["ema_trend"] = ema(h["close"], params.htf_ema)
     h["adx"] = adx(h, params.adx_period)
+    # 在 4h 粒度判定“ADX 是否上升”，稍后合并到 15m 使用
+    h["adx_rising_htf"] = h["adx"] > h["adx"].shift(1)
     h["trend_up"] = (h["close"] > h["ema_trend"]) & (h["adx"] >= params.adx_threshold)
     h["trend_dn"] = (h["close"] < h["ema_trend"]) & (h["adx"] >= params.adx_threshold)
     return h
@@ -88,11 +90,13 @@ def compute_signals(df: pd.DataFrame, params: StrategyParams) -> pd.DataFrame:
     long_cond = long_cond & vol_ok & (x["close"] > x["don_up_prev"] * (1.0 + buf))
     short_cond = short_cond & vol_ok & (x["close"] < x["don_low_prev"] * (1.0 - buf))
 
-    # ADX 上升过滤（只做趋势增强）
-    if "adx" in x.columns and params.require_adx_rising:
-        x["adx_rising"] = x["adx"] > x["adx"].shift(1)
-        long_cond  = long_cond  & x["adx_rising"]
-        short_cond = short_cond & x["adx_rising"]
+    # ADX 上升过滤（新：使用 HTF 的 adx_rising_htf；合并后在当前 4h 窗口内整段有效）
+    if params.require_adx_rising:
+        col = "adx_rising_htf"
+        if col in x.columns:
+            x[col] = x[col].ffill()  # 防止局部缺失
+            long_cond  = long_cond  & x[col]
+            short_cond = short_cond & x[col]
 
     sig = pd.Series(0, index=x.index, dtype=int)
     sig[long_cond.fillna(False)] = 1
