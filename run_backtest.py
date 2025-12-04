@@ -51,6 +51,7 @@ def main():
     p.add_argument("--atr_stop_mult", type=float, default=2.5)
     p.add_argument("--atr_trail_mult", type=float, default=3.2)
     p.add_argument("--long_only", action="store_true", default=True)
+    p.add_argument("--allow_short", dest="long_only", action="store_false", help="允许开空，默认仅做多")
     p.add_argument("--time_stop_bars", type=int, default=36)
     p.add_argument("--cooldown_bars", type=int, default=6)
     p.add_argument("--flat_daily", action="store_true", default=True)
@@ -64,6 +65,7 @@ def main():
     p.add_argument("--breakout_buffer_bps", type=float, default=5.0)
     p.add_argument("--min_atr_pct", type=float, default=0.10)
     p.add_argument("--require_adx_rising", action="store_true", default=True)
+    p.add_argument("--no_require_adx_rising", dest="require_adx_rising", action="store_false", help="禁用 ADX 上升过滤以提高交易频率")
 
     p.add_argument("--download", action="store_true")
 

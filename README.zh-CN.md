@@ -40,16 +40,17 @@ python run_backtest.py \
 python run_live.py --config config/live.yaml
 ```
 - 首次启动会发送一条“上线心跳”。
-- 默认 **live_enabled=false**：只做**纸上模拟**，每次下单/平仓、异常、定时状态都会发 Telegram。
+- 默认 **live_enabled=false**：只做**纸上模拟**，每次下单/平仓、异常、定时状态都会发 Telegram；若配置了 `status_interval_min=60`，Bot 会每小时推送当前净值（含未实现盈亏）、收益率与持仓。
 - 若要实盘，把 `trade.live_enabled` 改为 `true`（强烈建议先用 testnet 验证）。
+- 纸上模式默认本金 **100 USDT**（可在 `trade.paper_initial_equity` 修改）。
 
-## 默认策略参数（你当前表现最好的基线）
+## 默认策略参数（基于 2025-08-04~2025-12-04 的回测基线）
 - 市场/品种：**USDM / ETHUSDT**（可改为多品种）
 - 周期：LTF=**15m**，HTF=**4h**
-- 过滤：EMA(20/80) + **ADX ≥ 28** + **Donchian=90**
+- 过滤：EMA(18/50) + **HTF EMA 200** + **ADX ≥ 20** + **Donchian=60**
 - 费用/滑点：fee=**4.5 bps**，slippage=**2 bps**
-- 风控：ATR(14)、Stop=**2.5×ATR**、Trail=**3.2×ATR**、冷却=**6 bar**、时间止损=**36 bar**、日终平仓、**long_only**
-- 增强：**最小突破缓冲 5bp**、**最低波动 0.10%**、**ADX 上升过滤**、**到达 1R 立刻保本**
+- 风控：ATR(14)、Stop=**2.1×ATR**、Trail=**2.8×ATR**、冷却=**4 bar**、时间止损=**60 bar**、日终平仓、**long_only**
+- 增强：**最小突破缓冲 3bp**、**最低波动 0.07%**、**ADX 上升过滤**
 
 ## 目录结构
 ```
