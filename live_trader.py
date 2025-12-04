@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import time, uuid, math, traceback
+import time, uuid, math, traceback, json
 from dataclasses import dataclass
 from typing import Dict, Any, Optional, List
 import pandas as pd
@@ -60,6 +60,17 @@ class LiveTrader:
             base_url_spot=cfg.spot_base, base_url_usdm=cfg.usdm_base,
             base_url_usdm_testnet=cfg.usdm_testnet_base, use_testnet=cfg.use_testnet
         )
+        if self.state.get("initial_equity") is None:
+            base_eq = float(cfg.paper_initial_equity)
+            if cfg.live_enabled:
+                try:
+                    base_eq = float(self._get_available_equity())
+                except Exception:
+                    pass
+            self.state.set("initial_equity", base_eq)
+            # 为纸上账户同步初始权益，便于净值计算
+            if not cfg.live_enabled and self.state.get("equity") is None:
+                self.state.set("equity", base_eq)
         # 记录上次状态上报时间
         self.last_status_ts = 0
 
@@ -179,14 +190,35 @@ class LiveTrader:
         if now - self.last_status_ts >= interval:
             self.last_status_ts = now
             # 简单权益与持仓展示
-            eq = self._get_available_equity()
+            eq_realized = self._get_available_equity()
+            base_eq = float(self.state.get("initial_equity", eq_realized))
+            last_close = float(feat["close"].iloc[-1])
+            unreal = self._compute_unrealized(symbol, last_close)
+            eq_mark = eq_realized + unreal
+            pnl_pct = ((eq_mark / base_eq) - 1.0) * 100 if base_eq > 0 else 0.0
             pos = self.state.get("positions", {}).get(symbol, None)
             self.cfg.notifier.info("状态报告", {
                 "symbol": symbol,
-                "equity": round(eq, 4),
+                "equity_mark": round(eq_mark, 4),
+                "equity_realized": round(eq_realized, 4),
+                "unrealized": round(unreal, 4),
+                "pnl_pct": round(pnl_pct, 3),
                 "pos": json.dumps(pos, ensure_ascii=False) if pos else "flat",
                 "live_enabled": self.cfg.live_enabled
             })
+
+    def _compute_unrealized(self, symbol: str, last_close: float) -> float:
+        positions = self.state.get("positions", {})
+        pos = positions.get(symbol, None)
+        if not pos:
+            return 0.0
+        qty = float(pos.get("qty", 0.0))
+        entry = float(pos.get("entry_price", 0.0))
+        if qty <= 0 or entry <= 0:
+            return 0.0
+        if pos.get("side") == "long":
+            return (last_close - entry) * qty
+        return (entry - last_close) * qty
 
     def _process_symbol(self, symbol: str, feat: pd.DataFrame):
         row_prev = feat.iloc[-2]  # 已收盘bar（产生信号）

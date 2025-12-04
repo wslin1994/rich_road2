@@ -5,33 +5,33 @@ symbols: ["ETHUSDT"]
 ltf: "15m"
 htf: "4h"
 
-# 策略参数（默认为你当前区间表现最好的基线）
-ema_fast: 20
-ema_slow: 80
+# 策略参数（基于 2025-08-04~2025-12-04 回测最稳健的多头基线）
+ema_fast: 18
+ema_slow: 50
 htf_ema: 200
 adx_period: 14
-adx_threshold: 28
-donchian: 90
+adx_threshold: 20
+donchian: 60
 atr_period: 14
-atr_stop_mult: 2.5
-atr_trail_mult: 3.2
+atr_stop_mult: 2.1
+atr_trail_mult: 2.8
 allow_short: false                # long_only = true for spot/usdm
 
 # 增强过滤
-breakout_buffer_bps: 5.0         # 突破至少超过 5bp（0.05%）
-min_atr_pct: 0.10                 # ATR/close >= 0.10%（百分比）
+breakout_buffer_bps: 3.0         # 突破至少超过 3bp，提升频次
+min_atr_pct: 0.07                 # ATR/close >= 0.07%（百分比）
 require_adx_rising: true          # 仅在 ADX 上升时允许进场
 
 # 交易成本 & 风险
 fee_bps: 4.5                      # 真实费率（单边 bps）
 slippage_bps: 2.0
-risk_per_trade: 0.1
+risk_per_trade: 0.01
 max_leverage: 3.0
 max_positions: 2
 
 # 行为参数
-cooldown_bars: 6
-time_stop_bars: 36
+cooldown_bars: 4
+time_stop_bars: 60
 flat_daily: false
 flat_time_utc: "23:55"
 #avoid_hours_utc: [0,1,2,3,4,5,6]
@@ -41,7 +41,7 @@ avoid_hours_utc: [0,1,2,3,4,5,6]
 trade:
   live_enabled: false             # false: 纸上模拟；true: 实盘
   use_testnet: false              # 若想先跑testnet，将此项设为true并配置testnet base_url
-  paper_initial_equity: 30
+  paper_initial_equity: 100
   quote_ccy: "USDT"               # 账户计价
   qty_min_notional: 1.0           # 最小名义（简化保护）
 
